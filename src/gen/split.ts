@@ -47,8 +47,14 @@ export async function splitPrompt(userPrompt: string): Promise<PromptSplit> {
   } catch {
     throw new Error(`splitPrompt: Gemini did not return JSON. Got: ${text.slice(0, 200)}`);
   }
-  if (!parsed.scene_prompt || !parsed.motion_prompt) {
-    throw new Error(`splitPrompt: missing fields. Got: ${JSON.stringify(parsed)}`);
+  if (!parsed.scene_prompt) {
+    throw new Error(`splitPrompt: missing scene_prompt. Got: ${JSON.stringify(parsed)}`);
   }
-  return parsed;
+  // motion_prompt is only used when rendering video — fall back to a sensible
+  // default so a still-only generation doesn't fail when Gemini correctly
+  // omits motion for a static prompt.
+  return {
+    scene_prompt: parsed.scene_prompt,
+    motion_prompt: parsed.motion_prompt || "subtle ambient motion, gentle camera drift",
+  };
 }
