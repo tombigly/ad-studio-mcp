@@ -16,7 +16,7 @@ function ai(): GoogleGenAI {
   return _ai;
 }
 
-const IMAGE_MODEL = "gemini-2.5-flash-image-preview";
+const IMAGE_MODEL = "gemini-2.5-flash-image";
 
 export interface ImageResult {
   localPath: string;
