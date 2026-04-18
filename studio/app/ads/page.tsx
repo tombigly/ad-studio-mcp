@@ -20,12 +20,13 @@ const STATUS_TONE: Record<string, string> = {
   failed: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
-export default function AdsPage() {
-  let ads: ReturnType<typeof listAds> = [];
+export default async function AdsPage() {
+  let ads: Awaited<ReturnType<typeof listAds>> = [];
   let brandsMap: Record<string, string> = {};
   try {
-    ads = listAds();
-    brandsMap = Object.fromEntries(listBrands().map((b) => [b.id, b.name]));
+    const [a, b] = await Promise.all([listAds(), listBrands()]);
+    ads = a;
+    brandsMap = Object.fromEntries(b.map((br) => [br.id, br.name]));
   } catch {}
 
   return (

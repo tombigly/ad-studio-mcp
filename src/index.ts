@@ -112,7 +112,7 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
-    const rows = db.prepare("SELECT id, name, url, created_at FROM brands").all();
+    const rows = await db.prepare("SELECT id, name, url, created_at FROM brands").all();
     return {
       content: [{ type: "text", text: JSON.stringify(rows, null, 2) }],
     };
@@ -192,7 +192,7 @@ server.registerTool(
       args.push(status);
     }
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
-    const rows = db
+    const rows = await db
       .prepare(
         `SELECT id, brand_id, prompt, status, platforms, created_at FROM ads ${where} ORDER BY created_at DESC`
       )
@@ -213,9 +213,9 @@ server.registerTool(
     },
   },
   async ({ ad_id }) => {
-    const row = db
+    const row = (await db
       .prepare("SELECT id, status FROM ads WHERE id = ?")
-      .get(ad_id) as { id: string; status: string } | undefined;
+      .get(ad_id)) as { id: string; status: string } | undefined;
     if (!row) {
       return {
         content: [{ type: "text", text: `ad ${ad_id} not found` }],
@@ -230,7 +230,7 @@ server.registerTool(
         isError: true,
       };
     }
-    db.prepare("UPDATE ads SET status = 'approved' WHERE id = ?").run(ad_id);
+    await db.prepare("UPDATE ads SET status = 'approved' WHERE id = ?").run(ad_id);
     return {
       content: [{ type: "text", text: JSON.stringify({ ad_id, status: "approved" }) }],
     };
@@ -297,7 +297,7 @@ server.registerTool(
     },
   },
   async ({ platform, url }) => {
-    setConfig(`webhook.${platform}`, url);
+    await setConfig(`webhook.${platform}`, url);
     return {
       content: [
         {

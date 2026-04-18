@@ -13,7 +13,7 @@ export default async function StudioPage({
   const { brand_id } = await searchParams;
   let brands: Array<{ id: string; name: string }> = [];
   try {
-    brands = listBrands().map((b) => ({ id: b.id, name: b.name }));
+    brands = (await listBrands()).map((b) => ({ id: b.id, name: b.name }));
   } catch {}
   const tier = await getTierStatusAction();
 

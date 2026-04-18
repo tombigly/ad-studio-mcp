@@ -17,7 +17,7 @@ export default async function BrandDetailPage({
   const { id } = await params;
   let brand;
   try {
-    brand = getBrand(id);
+    brand = await getBrand(id);
   } catch {
     brand = null;
   }
@@ -28,7 +28,7 @@ export default async function BrandDetailPage({
     brandJson = JSON.parse(brand.brand_json);
   } catch {}
 
-  const ads = safeListAds(id);
+  const ads = await safeListAds(id);
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
@@ -150,9 +150,9 @@ function ListCard({ title, items }: { title: string; items?: string[] }) {
   );
 }
 
-function safeListAds(brand_id: string) {
+async function safeListAds(brand_id: string) {
   try {
-    return listAds({ brand_id });
+    return await listAds({ brand_id });
   } catch {
     return [];
   }

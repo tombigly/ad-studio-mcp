@@ -15,7 +15,7 @@ const GEMINI_TEST_URL =
 
 export async function pingGemini(): Promise<PreflightResult> {
   const key = getActiveGeminiKey();
-  const mode = getTierMode();
+  const mode = await getTierMode();
   try {
     const res = await fetch(`${GEMINI_TEST_URL}?key=${encodeURIComponent(key)}`, {
       method: "POST",

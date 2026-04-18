@@ -1,4 +1,4 @@
-// Read-only queries over the shared SQLite database.
+// Read-only queries over the shared database.
 // The MCP's db.ts initializes the connection lazily; importing db from here
 // triggers that init on first use.
 import "server-only";
@@ -41,23 +41,24 @@ export interface PostRow {
   response_json: string | null;
 }
 
-export function listBrands(): BrandRow[] {
-  return db
+export async function listBrands(): Promise<BrandRow[]> {
+  return (await db
     .prepare("SELECT * FROM brands ORDER BY created_at DESC")
-    .all() as BrandRow[];
+    .all()) as unknown as BrandRow[];
 }
 
-export function getBrand(id: string): BrandRow | null {
+export async function getBrand(id: string): Promise<BrandRow | null> {
   return (
-    (db.prepare("SELECT * FROM brands WHERE id = ?").get(id) as BrandRow | undefined) ??
-    null
+    ((await db.prepare("SELECT * FROM brands WHERE id = ?").get(id)) as
+      | BrandRow
+      | undefined) ?? null
   );
 }
 
-export function listAds(filters?: {
+export async function listAds(filters?: {
   brand_id?: string;
   status?: string;
-}): AdRow[] {
+}): Promise<AdRow[]> {
   const where: string[] = [];
   const args: unknown[] = [];
   if (filters?.brand_id) {
@@ -69,40 +70,44 @@ export function listAds(filters?: {
     args.push(filters.status);
   }
   const clause = where.length ? `WHERE ${where.join(" AND ")}` : "";
-  return db
+  return (await db
     .prepare(`SELECT * FROM ads ${clause} ORDER BY created_at DESC`)
-    .all(...args) as AdRow[];
+    .all(...args)) as unknown as AdRow[];
 }
 
-export function getAd(id: string): AdRow | null {
+export async function getAd(id: string): Promise<AdRow | null> {
   return (
-    (db.prepare("SELECT * FROM ads WHERE id = ?").get(id) as AdRow | undefined) ?? null
+    ((await db.prepare("SELECT * FROM ads WHERE id = ?").get(id)) as
+      | AdRow
+      | undefined) ?? null
   );
 }
 
-export function listPosts(ad_id: string): PostRow[] {
-  return db
+export async function listPosts(ad_id: string): Promise<PostRow[]> {
+  return (await db
     .prepare("SELECT * FROM posts WHERE ad_id = ? ORDER BY platform")
-    .all(ad_id) as PostRow[];
+    .all(ad_id)) as unknown as PostRow[];
 }
 
-export function countBy(
+export async function countBy(
   table: "brands" | "ads" | "posts",
   column?: string,
   value?: string
-): number {
+): Promise<number> {
   const row =
     column && value
-      ? (db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE ${column} = ?`).get(value) as {
-          n: number;
-        })
-      : (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number });
-  return row.n;
+      ? ((await db
+          .prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE ${column} = ?`)
+          .get(value)) as { n: number | string } | undefined)
+      : ((await db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get()) as
+          | { n: number | string }
+          | undefined);
+  return Number(row?.n ?? 0);
 }
 
-export function sumCostCents(): number {
-  const row = db.prepare("SELECT COALESCE(SUM(cost_cents), 0) AS n FROM ads").get() as {
-    n: number;
-  };
-  return row.n;
+export async function sumCostCents(): Promise<number> {
+  const row = (await db
+    .prepare("SELECT COALESCE(SUM(cost_cents), 0) AS n FROM ads")
+    .get()) as { n: number | string } | undefined;
+  return Number(row?.n ?? 0);
 }

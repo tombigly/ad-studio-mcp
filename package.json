@@ -54,6 +54,7 @@
     "better-sqlite3": "^12.9.0",
     "nanoid": "^5.1.9",
     "open": "^10.2.0",
+    "postgres": "^3.4.9",
     "replicate": "^1.4.0",
     "zod": "^4.3.6"
   },

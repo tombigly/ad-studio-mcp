@@ -8,8 +8,8 @@ import { formatDistanceToNow } from "date-fns";
 
 export const dynamic = "force-dynamic";
 
-export default function BrandsPage() {
-  const brands = safeListBrands();
+export default async function BrandsPage() {
+  const brands = await safeListBrands();
 
   return (
     <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
@@ -99,9 +99,9 @@ export default function BrandsPage() {
   );
 }
 
-function safeListBrands() {
+async function safeListBrands() {
   try {
-    return listBrands();
+    return await listBrands();
   } catch {
     return [];
   }

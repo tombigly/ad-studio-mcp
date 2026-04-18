@@ -7,19 +7,19 @@ export type Platform = (typeof PLATFORMS)[number];
 
 export async function setWebhookUrl(platform: Platform, url: string) {
   if (!url.startsWith("https://")) throw new Error("URL must start with https://");
-  setConfig(`webhook.${platform}`, url);
+  await setConfig(`webhook.${platform}`, url);
   revalidatePath("/settings");
   return { platform, saved: true };
 }
 
 export async function getWebhookUrls(): Promise<Record<Platform, string | null>> {
   const out = {} as Record<Platform, string | null>;
-  for (const p of PLATFORMS) out[p] = getConfig(`webhook.${p}`);
+  for (const p of PLATFORMS) out[p] = await getConfig(`webhook.${p}`);
   return out;
 }
 
 export async function deleteWebhookUrl(platform: Platform) {
-  setConfig(`webhook.${platform}`, "");
+  await setConfig(`webhook.${platform}`, "");
   revalidatePath("/settings");
   return { platform, cleared: true };
 }

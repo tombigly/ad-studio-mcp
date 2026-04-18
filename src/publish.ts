@@ -96,14 +96,14 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
     throw new Error(`publishAd: invalid when timestamp: ${args.when}`);
   }
 
-  const adRow = db
+  const adRow = (await db
     .prepare(
       `SELECT id, brand_id, status, image_url, video_url, r2_image_url, r2_video_url,
               image_variants_json, video_variants_json,
               r2_image_variants_json, r2_video_variants_json,
               creative_type, captions_json, platforms FROM ads WHERE id = ?`
     )
-    .get(args.ad_id) as AdRow | undefined;
+    .get(args.ad_id)) as AdRow | undefined;
   if (!adRow) throw new Error(`publishAd: ad ${args.ad_id} not found`);
   if (adRow.status !== "approved") {
     throw new Error(
@@ -138,9 +138,9 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
     ? { default: adRow.r2_video_url }
     : {};
 
-  const brandRow = db
+  const brandRow = (await db
     .prepare(`SELECT id, name FROM brands WHERE id = ?`)
-    .get(adRow.brand_id) as { id: string; name: string } | undefined;
+    .get(adRow.brand_id)) as { id: string; name: string } | undefined;
   if (!brandRow) throw new Error(`publishAd: brand ${adRow.brand_id} not found`);
 
   // Bind to locals so nested closures don't re-widen the type.
@@ -189,14 +189,14 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
     if (isR2Configured()) {
       const uploaded = await uploadFile(localPath, `ads/${ad.id}/${aspect.replace(":", "x")}`);
       cache[aspect] = uploaded.url;
-      db.prepare(`UPDATE ads SET ${saveToVariantColumn} = ? WHERE id = ?`).run(
+      await db.prepare(`UPDATE ads SET ${saveToVariantColumn} = ? WHERE id = ?`).run(
         JSON.stringify(cache),
         ad.id
       );
       return { url: uploaded.url, mediaType };
     }
 
-    const tunnelUrl = getConfig("tunnel.url");
+    const tunnelUrl = await getConfig("tunnel.url");
     if (!tunnelUrl) {
       throw new Error(
         "publishAd: no public media URL available. R2 is not configured and no tunnel is running."
@@ -214,20 +214,21 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
     .map((p) => p.trim())
     .filter((p): p is Platform => ALL_PLATFORMS.includes(p as Platform));
 
-  db.prepare(`UPDATE ads SET status = 'publishing' WHERE id = ?`).run(adRow.id);
+  await db.prepare(`UPDATE ads SET status = 'publishing' WHERE id = ?`).run(adRow.id);
 
   const mediaUrlByPlatform: Record<string, string> = {};
   const results = await Promise.all(
     platforms.map(async (platform): Promise<PerPlatformResult> => {
-      const webhookUrl = getConfig(`webhook.${platform}`);
+      const webhookUrl = await getConfig(`webhook.${platform}`);
       const postId = nanoid(12);
       const idemKey = idempotencyKey(adRow.id, platform, scheduledAt);
 
       if (!webhookUrl) {
-        db.prepare(
-          `INSERT OR IGNORE INTO posts
+        await db.prepare(
+          `INSERT INTO posts
              (id, ad_id, platform, webhook_url, scheduled_at, status, response_json, idempotency_key)
-             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)`
+             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)
+           ON CONFLICT (idempotency_key) DO NOTHING`
         ).run(
           postId,
           adRow.id,
@@ -245,10 +246,11 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
         resolved = await resolveMediaUrlForPlatform(platform);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        db.prepare(
-          `INSERT OR IGNORE INTO posts
+        await db.prepare(
+          `INSERT INTO posts
              (id, ad_id, platform, webhook_url, scheduled_at, status, response_json, idempotency_key)
-             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)`
+             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)
+           ON CONFLICT (idempotency_key) DO NOTHING`
         ).run(
           postId,
           adRow.id,
@@ -282,10 +284,11 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
         const responseText = await res.text();
         const ok = res.ok;
 
-        db.prepare(
-          `INSERT OR IGNORE INTO posts
+        await db.prepare(
+          `INSERT INTO posts
              (id, ad_id, platform, webhook_url, scheduled_at, published_at, status, response_json, idempotency_key)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT (idempotency_key) DO NOTHING`
         ).run(
           postId,
           adRow.id,
@@ -307,10 +310,11 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        db.prepare(
-          `INSERT OR IGNORE INTO posts
+        await db.prepare(
+          `INSERT INTO posts
              (id, ad_id, platform, webhook_url, scheduled_at, status, response_json, idempotency_key)
-             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)`
+             VALUES (?, ?, ?, ?, ?, 'failed', ?, ?)
+           ON CONFLICT (idempotency_key) DO NOTHING`
         ).run(
           postId,
           adRow.id,
@@ -328,7 +332,7 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
   const anyFailed = results.some((r) => r.status !== "sent");
   const allSent = results.every((r) => r.status === "sent");
   const finalStatus = allSent ? "published" : anyFailed ? "failed" : "publishing";
-  db.prepare(`UPDATE ads SET status = ? WHERE id = ?`).run(finalStatus, adRow.id);
+  await db.prepare(`UPDATE ads SET status = ? WHERE id = ?`).run(finalStatus, adRow.id);
 
   return {
     ad_id: adRow.id,
@@ -339,14 +343,14 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
   };
 }
 
-export function getPostStatus(ad_id: string) {
-  const rows = db
+export async function getPostStatus(ad_id: string) {
+  const rows = (await db
     .prepare(
       `SELECT id, platform, status, published_at, scheduled_at, response_json
          FROM posts WHERE ad_id = ?
          ORDER BY platform`
     )
-    .all(ad_id) as Array<{
+    .all(ad_id)) as unknown as Array<{
     id: string;
     platform: string;
     status: string;

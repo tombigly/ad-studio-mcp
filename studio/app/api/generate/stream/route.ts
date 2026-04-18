@@ -24,10 +24,6 @@ export async function POST(req: Request) {
   const creativeType = body.creative_type ?? "still";
   const willRenderVideo = creativeType === "video" || creativeType === "both";
 
-  const brandRow = db
-    .prepare("SELECT id, brand_json FROM brands WHERE id = ?")
-    .get(body.brand_id) as { id: string; brand_json: string } | undefined;
-
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -39,6 +35,11 @@ export async function POST(req: Request) {
       const close = () => controller.close();
 
       try {
+        // Fetch brand row inside the stream so any DB error surfaces to the
+        // client as a normal event, not a 500 on the fetch itself.
+        const brandRow = (await db
+          .prepare("SELECT id, brand_json FROM brands WHERE id = ?")
+          .get(body.brand_id)) as { id: string; brand_json: string } | undefined;
         if (!brandRow) throw new Error(`brand ${body.brand_id} not found`);
         if (!body.prompt) throw new Error("prompt is required");
         if (!body.platforms?.length) throw new Error("at least one platform required");
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
           audiences?: string[];
         };
 
-        db.prepare(
+        await db.prepare(
           `INSERT INTO ads (id, brand_id, prompt, platforms, status, creative_type, created_at)
            VALUES (?, ?, ?, ?, 'generating', ?, ?)`
         ).run(
@@ -111,7 +112,7 @@ export async function POST(req: Request) {
         send("stage", { stage: "captions", status: "done" });
 
         const costCents = video ? 30 : 5;
-        db.prepare(
+        await db.prepare(
           `UPDATE ads
              SET scene_prompt = ?, motion_prompt = ?, image_url = ?, video_url = ?,
                  captions_json = ?, status = 'draft', cost_cents = ?

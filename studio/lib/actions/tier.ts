@@ -8,13 +8,13 @@ export async function getTierStatusAction(): Promise<{
   mode: TierMode;
   hasFreeKey: boolean;
 }> {
-  const mode = getTierMode();
+  const mode = await getTierMode();
   const hasFreeKey = Boolean(process.env.GEMINI_API_KEY_FREE);
   return { mode, hasFreeKey };
 }
 
 export async function setTierAction(mode: TierMode) {
-  setTierMode(mode);
+  await setTierMode(mode);
   revalidatePath("/");
   revalidatePath("/studio");
   revalidatePath("/settings");

@@ -93,7 +93,7 @@ export async function createBrand(args: CreateBrandArgs): Promise<{
   };
 
   const id = nanoid(10);
-  db.prepare(
+  await db.prepare(
     `INSERT INTO brands (id, name, url, brand_json, created_at) VALUES (?, ?, ?, ?, ?)`
   ).run(id, args.name.trim(), args.url ?? null, JSON.stringify(brand), Date.now());
 
@@ -116,9 +116,9 @@ export async function enrichBrandFromUrl(args: EnrichBrandArgs): Promise<{
   brand: BrandSystem;
   used_site_text: boolean;
 }> {
-  const row = db
+  const row = (await db
     .prepare("SELECT id, name, url, brand_json FROM brands WHERE id = ?")
-    .get(args.brand_id) as
+    .get(args.brand_id)) as
     | { id: string; name: string; url: string | null; brand_json: string }
     | undefined;
   if (!row) throw new Error(`enrichBrand: brand ${args.brand_id} not found`);
@@ -173,7 +173,7 @@ export async function enrichBrandFromUrl(args: EnrichBrandArgs): Promise<{
     offers: generated.offers ?? existing.offers,
   };
 
-  db.prepare("UPDATE brands SET brand_json = ? WHERE id = ?").run(
+  await db.prepare("UPDATE brands SET brand_json = ? WHERE id = ?").run(
     JSON.stringify(merged),
     row.id
   );

@@ -16,7 +16,7 @@ let startingPromise: Promise<string | null> | null = null;
 
 export async function startTunnel(localPort: number): Promise<string | null> {
   if (tunnel && !tunnel.closed) {
-    return getConfig("tunnel.url");
+    return await getConfig("tunnel.url");
   }
   if (startingPromise) return startingPromise;
 
@@ -27,8 +27,8 @@ export async function startTunnel(localPort: number): Promise<string | null> {
       };
       const t = await mod.default({ port: localPort });
       tunnel = t;
-      setConfig("tunnel.url", t.url);
-      setConfig("tunnel.updated_at", String(Date.now()));
+      await setConfig("tunnel.url", t.url);
+      await setConfig("tunnel.updated_at", String(Date.now()));
       t.on("close", () => {
         tunnel = null;
         console.error("[tunnel] closed");
@@ -49,6 +49,6 @@ export async function startTunnel(localPort: number): Promise<string | null> {
   return startingPromise;
 }
 
-export function getTunnelUrl(): string | null {
-  return getConfig("tunnel.url");
+export async function getTunnelUrl(): Promise<string | null> {
+  return await getConfig("tunnel.url");
 }

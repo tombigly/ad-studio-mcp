@@ -34,21 +34,24 @@ const STATUS_TONE: Record<string, string> = {
   failed: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   if (!isConfigured()) redirect("/setup");
 
   let stats = { brands: 0, ads: 0, published7d: 0, spendCents: 0 };
-  let recent: ReturnType<typeof listAds> = [];
+  let recent: Awaited<ReturnType<typeof listAds>> = [];
   let brandsMap: Record<string, string> = {};
   try {
-    stats = {
-      brands: countBy("brands"),
-      ads: countBy("ads"),
-      published7d: countBy("ads", "status", "published"),
-      spendCents: sumCostCents(),
-    };
-    recent = listAds().slice(0, 6);
-    brandsMap = Object.fromEntries(listBrands().map((b) => [b.id, b.name]));
+    const [b, a, p, s, r, bl] = await Promise.all([
+      countBy("brands"),
+      countBy("ads"),
+      countBy("ads", "status", "published"),
+      sumCostCents(),
+      listAds(),
+      listBrands(),
+    ]);
+    stats = { brands: b, ads: a, published7d: p, spendCents: s };
+    recent = r.slice(0, 6);
+    brandsMap = Object.fromEntries(bl.map((br) => [br.id, br.name]));
   } catch {}
 
   return (

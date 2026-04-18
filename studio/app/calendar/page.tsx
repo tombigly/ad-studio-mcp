@@ -13,10 +13,10 @@ interface ScheduledPost {
   status: string;
 }
 
-export default function CalendarPage() {
+export default async function CalendarPage() {
   let scheduled: ScheduledPost[] = [];
   try {
-    scheduled = db
+    scheduled = (await db
       .prepare(
         `SELECT posts.id AS post_id, posts.ad_id, posts.platform, posts.scheduled_at,
                 posts.status, ads.prompt
@@ -25,7 +25,7 @@ export default function CalendarPage() {
           WHERE posts.scheduled_at IS NOT NULL
           ORDER BY posts.scheduled_at ASC`
       )
-      .all() as ScheduledPost[];
+      .all()) as unknown as ScheduledPost[];
   } catch {}
 
   return (

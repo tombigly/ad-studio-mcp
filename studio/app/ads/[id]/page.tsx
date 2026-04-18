@@ -27,10 +27,10 @@ export default async function AdDetailPage({
   const { id } = await params;
   let ad, brand, posts;
   try {
-    ad = getAd(id);
+    ad = await getAd(id);
     if (!ad) notFound();
-    brand = getBrand(ad.brand_id);
-    posts = listPosts(id);
+    brand = await getBrand(ad.brand_id);
+    posts = await listPosts(id);
   } catch {
     notFound();
   }

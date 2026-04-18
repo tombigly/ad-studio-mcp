@@ -59,9 +59,9 @@ export async function runPipeline(args: GenerateAdArgs): Promise<GenerateAdResul
     throw new Error("runPipeline: at least one platform required");
   }
 
-  const brandRow = db
+  const brandRow = (await db
     .prepare("SELECT id, name, brand_json FROM brands WHERE id = ?")
-    .get(args.brand_id) as
+    .get(args.brand_id)) as
     | { id: string; name: string; brand_json: string }
     | undefined;
   if (!brandRow) {
@@ -83,7 +83,7 @@ export async function runPipeline(args: GenerateAdArgs): Promise<GenerateAdResul
 
   const adId = nanoid(12);
 
-  db.prepare(
+  await db.prepare(
     `INSERT INTO ads (id, brand_id, prompt, platforms, status, creative_type, created_at)
      VALUES (?, ?, ?, ?, 'generating', ?, ?)`
   ).run(
@@ -134,7 +134,7 @@ export async function runPipeline(args: GenerateAdArgs): Promise<GenerateAdResul
     // Primary (most common) aspect: 9:16 if present, else the first generated.
     const primaryAspect: Aspect = aspects.includes("9:16") ? "9:16" : aspects[0]!;
 
-    db.prepare(
+    await db.prepare(
       `UPDATE ads
          SET scene_prompt = ?, motion_prompt = ?, image_url = ?, video_url = ?,
              image_variants_json = ?, video_variants_json = ?,
@@ -164,7 +164,7 @@ export async function runPipeline(args: GenerateAdArgs): Promise<GenerateAdResul
       duration_ms: Date.now() - started,
     };
   } catch (err) {
-    db.prepare("UPDATE ads SET status = 'failed' WHERE id = ?").run(adId);
+    await db.prepare("UPDATE ads SET status = 'failed' WHERE id = ?").run(adId);
     throw err;
   }
 }

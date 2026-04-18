@@ -27,7 +27,7 @@ export async function enrichBrandAction(brand_id: string, url?: string) {
 }
 
 export async function deleteBrandAction(brand_id: string) {
-  db.prepare("DELETE FROM brands WHERE id = ?").run(brand_id);
+  await db.prepare("DELETE FROM brands WHERE id = ?").run(brand_id);
   revalidatePath("/brands");
   revalidatePath("/");
   return { brand_id, deleted: true };
@@ -40,7 +40,7 @@ export async function updateBrandJsonAction(brand_id: string, brand_json: string
   } catch {
     throw new Error("brand_json is not valid JSON");
   }
-  db.prepare("UPDATE brands SET brand_json = ? WHERE id = ?").run(brand_json, brand_id);
+  await db.prepare("UPDATE brands SET brand_json = ? WHERE id = ?").run(brand_json, brand_id);
   revalidatePath(`/brands/${brand_id}`);
   return { brand_id, updated: true };
 }
