@@ -1,4 +1,4 @@
-import { db } from "@/lib/mcp";
+import { db, ensureInit } from "@/lib/mcp";
 import { CalendarView } from "@/components/calendar-view";
 import { PageHeader } from "@/components/page-header";
 
@@ -16,6 +16,7 @@ interface ScheduledPost {
 export default async function CalendarPage() {
   let scheduled: ScheduledPost[] = [];
   try {
+    await ensureInit();
     scheduled = (await db
       .prepare(
         `SELECT posts.id AS post_id, posts.ad_id, posts.platform, posts.scheduled_at,

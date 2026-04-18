@@ -1,8 +1,9 @@
 // Read-only queries over the shared database.
-// The MCP's db.ts initializes the connection lazily; importing db from here
-// triggers that init on first use.
+// Every query awaits ensureInit() so the Postgres schema (on Vercel) is
+// guaranteed to exist before a SELECT runs — otherwise cold-start requests
+// hit "relation does not exist".
 import "server-only";
-import { db } from "./mcp";
+import { db, ensureInit } from "./mcp";
 
 export interface BrandRow {
   id: string;
@@ -42,12 +43,14 @@ export interface PostRow {
 }
 
 export async function listBrands(): Promise<BrandRow[]> {
+  await ensureInit();
   return (await db
     .prepare("SELECT * FROM brands ORDER BY created_at DESC")
     .all()) as unknown as BrandRow[];
 }
 
 export async function getBrand(id: string): Promise<BrandRow | null> {
+  await ensureInit();
   return (
     ((await db.prepare("SELECT * FROM brands WHERE id = ?").get(id)) as
       | BrandRow
@@ -59,6 +62,7 @@ export async function listAds(filters?: {
   brand_id?: string;
   status?: string;
 }): Promise<AdRow[]> {
+  await ensureInit();
   const where: string[] = [];
   const args: unknown[] = [];
   if (filters?.brand_id) {
@@ -76,6 +80,7 @@ export async function listAds(filters?: {
 }
 
 export async function getAd(id: string): Promise<AdRow | null> {
+  await ensureInit();
   return (
     ((await db.prepare("SELECT * FROM ads WHERE id = ?").get(id)) as
       | AdRow
@@ -84,6 +89,7 @@ export async function getAd(id: string): Promise<AdRow | null> {
 }
 
 export async function listPosts(ad_id: string): Promise<PostRow[]> {
+  await ensureInit();
   return (await db
     .prepare("SELECT * FROM posts WHERE ad_id = ? ORDER BY platform")
     .all(ad_id)) as unknown as PostRow[];
@@ -94,6 +100,7 @@ export async function countBy(
   column?: string,
   value?: string
 ): Promise<number> {
+  await ensureInit();
   const row =
     column && value
       ? ((await db
@@ -106,6 +113,7 @@ export async function countBy(
 }
 
 export async function sumCostCents(): Promise<number> {
+  await ensureInit();
   const row = (await db
     .prepare("SELECT COALESCE(SUM(cost_cents), 0) AS n FROM ads")
     .get()) as { n: number | string } | undefined;

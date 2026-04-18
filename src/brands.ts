@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { nanoid } from "nanoid";
-import { db } from "./db.js";
+import { db, ensureInit } from "./db.js";
 import { getActiveGeminiKey } from "./tier.js";
 import { withRetry } from "./gemini-retry.js";
 
@@ -83,6 +83,7 @@ export async function createBrand(args: CreateBrandArgs): Promise<{
   brand: BrandSystem;
 }> {
   if (!args.name?.trim()) throw new Error("createBrand: name is required");
+  await ensureInit();
 
   const brand: BrandSystem = {
     voice: args.voice?.trim() || DEFAULT_VOICE,
@@ -116,6 +117,7 @@ export async function enrichBrandFromUrl(args: EnrichBrandArgs): Promise<{
   brand: BrandSystem;
   used_site_text: boolean;
 }> {
+  await ensureInit();
   const row = (await db
     .prepare("SELECT id, name, url, brand_json FROM brands WHERE id = ?")
     .get(args.brand_id)) as

@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { db } from "../db.js";
+import { db, ensureInit } from "../db.js";
 import { splitPrompt } from "./split.js";
 import { generateImage } from "./image.js";
 import { generateVideo } from "./video.js";
@@ -59,6 +59,7 @@ export async function runPipeline(args: GenerateAdArgs): Promise<GenerateAdResul
     throw new Error("runPipeline: at least one platform required");
   }
 
+  await ensureInit();
   const brandRow = (await db
     .prepare("SELECT id, name, brand_json FROM brands WHERE id = ?")
     .get(args.brand_id)) as

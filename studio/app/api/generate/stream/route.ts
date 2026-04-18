@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { db } from "@/lib/mcp";
+import { db, ensureInit } from "@/lib/mcp";
 import { splitPrompt } from "../../../../../dist/gen/split.js";
 import { generateImage } from "../../../../../dist/gen/image.js";
 import { generateVideo } from "../../../../../dist/gen/video.js";
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       const close = () => controller.close();
 
       try {
+        await ensureInit();
         // Fetch brand row inside the stream so any DB error surfaces to the
         // client as a normal event, not a 500 on the fetch itself.
         const brandRow = (await db

@@ -1,6 +1,6 @@
 // Re-exports from the MCP package so the UI calls the exact same business logic
 // the MCP stdio server does. Shared state lives in ~/.ad-studio/db.sqlite.
-export { db, getConfig, setConfig } from "../../dist/db.js";
+export { db, getConfig, setConfig, ensureInit } from "../../dist/db.js";
 export { createBrand, enrichBrandFromUrl } from "../../dist/brands.js";
 export { runPipeline } from "../../dist/gen/pipeline.js";
 export { publishAd, getPostStatus } from "../../dist/publish.js";

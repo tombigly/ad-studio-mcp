@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { basename } from "node:path";
 import { nanoid } from "nanoid";
-import { db, getConfig } from "./db.js";
+import { db, getConfig, ensureInit } from "./db.js";
 import { uploadFile } from "./storage/r2.js";
 import { isR2Configured } from "./config.js";
 import { aspectFor } from "./platforms.js";
@@ -95,6 +95,7 @@ export async function publishAd(args: PublishArgs): Promise<PublishResult> {
   if (scheduledAt !== null && Number.isNaN(scheduledAt)) {
     throw new Error(`publishAd: invalid when timestamp: ${args.when}`);
   }
+  await ensureInit();
 
   const adRow = (await db
     .prepare(
