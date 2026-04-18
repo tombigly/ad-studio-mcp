@@ -1,0 +1,66 @@
+{
+  "name": "@adnowmarketing/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for AI ad generation and publishing — Gemini + Replicate Kling + Cloudflare R2 + Pipedream. Emerge Hackathon 2026.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ad-studio-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "pipedream-setup.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:studio": "cd studio && npm run build",
+    "dev": "tsx src/index.ts",
+    "dev:studio": "cd studio && npm run dev",
+    "start": "node dist/index.js",
+    "studio": "node bin/studio.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai",
+    "ads",
+    "video-generation",
+    "gemini",
+    "kling",
+    "replicate",
+    "social-media"
+  ],
+  "author": "adnowmarketing",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tombigly/ad-studio-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tombigly/ad-studio-mcp/issues"
+  },
+  "homepage": "https://github.com/tombigly/ad-studio-mcp#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1032.0",
+    "@google/genai": "^1.50.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "better-sqlite3": "^12.9.0",
+    "nanoid": "^5.1.9",
+    "open": "^10.2.0",
+    "replicate": "^1.4.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
