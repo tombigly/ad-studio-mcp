@@ -152,37 +152,41 @@ export function SettingsClient({ env, mcp, webhooks, tier }: Props) {
             </button>
             <button
               type="button"
-              disabled={pending || !hasFreeKey}
+              disabled={pending}
               onClick={() => {
                 startTransition(async () => {
                   try {
                     await setTierAction("free");
                     setTierMode("free");
-                    toast.success("Switched to Free mode");
+                    toast.success(
+                      hasFreeKey
+                        ? "Switched to Free mode"
+                        : "Free mode on — no free key set, falling back to main key. Paste a free-tier key below to switch."
+                    );
                   } catch (err) {
                     toast.error(err instanceof Error ? err.message : "Switch failed");
                   }
                 });
               }}
-              title={!hasFreeKey ? "Add a free-tier key below first" : undefined}
               className={cn(
                 "rounded-md border p-3 text-left transition-colors",
                 tierMode === "free"
                   ? "border-emerald-500/60 bg-emerald-500/10"
-                  : "border-border hover:border-primary/60",
-                !hasFreeKey && "opacity-50 cursor-not-allowed"
+                  : "border-border hover:border-primary/60"
               )}
             >
               <div className="font-medium text-sm flex items-center gap-2">
                 Free
                 {!hasFreeKey && (
-                  <span className="text-base text-foreground font-normal">
-                    (add key →)
+                  <span className="text-base text-foreground font-normal opacity-70">
+                    · no key yet
                   </span>
                 )}
               </div>
               <div className="text-base text-foreground mt-1 leading-relaxed">
-                Uses a free-tier Gemini key. Stills only — 15 req/min free quota.
+                {hasFreeKey
+                  ? "Uses your free-tier Gemini key. Stills only — 15 req/min free quota."
+                  : "Add a key below for the free quota, or switch now and we'll fall back to your main key."}
               </div>
             </button>
           </div>
