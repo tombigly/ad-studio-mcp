@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +11,8 @@ import {
   Film,
   Type,
   Scissors,
+  Zap,
+  Leaf,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { CreateBrandDialog } from "@/components/create-brand-dialog";
 import { Plus } from "lucide-react";
+import { setTierAction } from "@/lib/actions/tier";
 
 type Platform = "x" | "instagram" | "tiktok" | "facebook" | "youtube";
 type Aspect = "9:16" | "1:1" | "16:9";
@@ -49,7 +52,7 @@ type StageState = "pending" | "active" | "done" | "skipped" | "error";
 export function StudioForm({
   brands,
   defaultBrandId,
-  tierMode = "paid",
+  tierMode: initialTierMode = "paid",
 }: {
   brands: Array<{ id: string; name: string }>;
   defaultBrandId?: string;
@@ -62,6 +65,8 @@ export function StudioForm({
   const [brandId, setBrandId] = useState(defaultBrandId ?? brands[0]?.id ?? "");
   const [prompt, setPrompt] = useState("");
   const [platforms, setPlatforms] = useState<Platform[]>(["instagram", "tiktok"]);
+  const [tierMode, setTierModeLocal] = useState<"paid" | "free">(initialTierMode);
+  const [tierPending, startTierTransition] = useTransition();
   const isFreeTier = tierMode === "free";
 
   type CreativeType = "still" | "video" | "both";
@@ -71,6 +76,25 @@ export function StudioForm({
   const [running, setRunning] = useState(false);
   const [stages, setStages] = useState<Record<string, StageState>>({});
   const [error, setError] = useState<string | null>(null);
+
+  const switchTier = (mode: "paid" | "free") => {
+    if (mode === tierMode || tierPending || running) return;
+    const previous = tierMode;
+    setTierModeLocal(mode);
+    startTierTransition(async () => {
+      try {
+        await setTierAction(mode);
+        toast.success(
+          mode === "free"
+            ? "Free mode — stills only, using free-tier Gemini quota"
+            : "Paid mode — Kling video unlocked"
+        );
+      } catch (err) {
+        setTierModeLocal(previous);
+        toast.error(err instanceof Error ? err.message : "Switch failed");
+      }
+    });
+  };
 
   const togglePlatform = (p: Platform) => {
     setPlatforms((curr) =>
@@ -181,6 +205,12 @@ export function StudioForm({
     <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-6">
       <Card className="border-border/60">
         <CardContent className="p-6 md:p-7 space-y-7">
+          <TierToggle
+            mode={tierMode}
+            pending={tierPending || running}
+            onChange={switchTier}
+          />
+
           <FormSection
             title="Brand"
             hint="Whose voice should this ad sound like? Tap + to add one on the fly."
@@ -495,6 +525,67 @@ function FormSection({
         )}
       </div>
       {children}
+    </div>
+  );
+}
+
+// Segmented Free / Paid toggle shown at the top of the Studio form.
+function TierToggle({
+  mode,
+  pending,
+  onChange,
+}: {
+  mode: "paid" | "free";
+  pending: boolean;
+  onChange: (mode: "paid" | "free") => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 p-2">
+      <div className="px-2">
+        <div className="text-sm font-semibold">Tier</div>
+        <p className="text-xs text-foreground leading-relaxed">
+          {mode === "free"
+            ? "Free Gemini quota, stills only — no Replicate charges."
+            : "Your paid keys, full pipeline including Kling video."}
+        </p>
+      </div>
+      <div
+        role="tablist"
+        className="flex gap-1 rounded-md bg-background/60 p-1 shrink-0"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "paid"}
+          disabled={pending}
+          onClick={() => onChange("paid")}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "paid"
+              ? "bg-violet-500/20 text-violet-200 border border-violet-500/40"
+              : "text-foreground/70 hover:text-foreground"
+          )}
+        >
+          <Zap className="size-3.5" />
+          Paid
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "free"}
+          disabled={pending}
+          onClick={() => onChange("free")}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors",
+            mode === "free"
+              ? "bg-emerald-500/20 text-emerald-200 border border-emerald-500/40"
+              : "text-foreground/70 hover:text-foreground"
+          )}
+        >
+          <Leaf className="size-3.5" />
+          Free
+        </button>
+      </div>
     </div>
   );
 }
