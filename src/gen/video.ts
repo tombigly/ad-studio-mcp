@@ -9,9 +9,12 @@ function replicate(): Replicate {
   return _replicate;
 }
 
-const KLING_MODEL =
+// Image-to-video model. Defaults to Wan 2.7 (current at time of writing —
+// Kling v2.1 was retired). Override with VIDEO_MODEL env var if needed.
+const VIDEO_MODEL =
+  (process.env.VIDEO_MODEL as `${string}/${string}` | undefined) ??
   (process.env.KLING_MODEL as `${string}/${string}` | undefined) ??
-  "kwaivgi/kling-v2.1-standard";
+  "wan-video/wan-2.7-i2v";
 
 export interface VideoResult {
   localPath: string;
@@ -46,14 +49,16 @@ export async function generateVideo(
 ): Promise<VideoResult> {
   const imageBuffer = await readFile(imagePath);
 
-  // Replicate's Prefer: wait header maxes at 60 seconds. Kling videos take
-  // 60–180s, so use the max blocking wait then let the SDK poll the rest.
-  const output = await replicate().run(KLING_MODEL, {
+  // Replicate's Prefer: wait header maxes at 60 seconds. Video generation
+  // typically takes 60–180s, so use the max blocking wait then poll.
+  // Wan 2.7 expects `first_frame` (image), `prompt`, `duration`, and derives
+  // aspect ratio from the input frame.
+  const output = await replicate().run(VIDEO_MODEL, {
     input: {
-      start_image: imageBuffer,
+      first_frame: imageBuffer,
       prompt: motionPrompt,
       duration,
-      aspect_ratio: aspect,
+      resolution: "720p",
     },
     wait: { mode: "block", interval: 3000, timeout: 60 },
   });
