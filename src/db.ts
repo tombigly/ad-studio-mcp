@@ -66,6 +66,11 @@ function addColumnIfMissing(table: string, column: string, type: string): void {
 addColumnIfMissing("ads", "r2_image_url", "TEXT");
 addColumnIfMissing("ads", "r2_video_url", "TEXT");
 addColumnIfMissing("ads", "creative_type", "TEXT NOT NULL DEFAULT 'still'");
+// Per-aspect variants: JSON map like {"9:16":"/path","1:1":"/path","16:9":"/path"}
+addColumnIfMissing("ads", "image_variants_json", "TEXT");
+addColumnIfMissing("ads", "video_variants_json", "TEXT");
+addColumnIfMissing("ads", "r2_image_variants_json", "TEXT");
+addColumnIfMissing("ads", "r2_video_variants_json", "TEXT");
 
 export function getConfig(key: string): string | null {
   const row = db

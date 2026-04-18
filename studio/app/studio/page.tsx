@@ -1,5 +1,6 @@
 import { listBrands } from "@/lib/queries";
 import { StudioForm } from "@/components/studio-form";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -15,13 +16,12 @@ export default async function StudioPage({
   } catch {}
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Studio</h1>
-        <p className="text-muted-foreground mt-1">
-          Prompt → hero frame → video → captions. Takes about 60–120 seconds.
-        </p>
-      </header>
+    <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8">
+      <PageHeader
+        title="Studio"
+        subtitle="Describe the ad once. We split the prompt, render per-platform assets, write captions, and hand you a ready-to-publish creative in 60–120 seconds."
+        accent
+      />
       <StudioForm brands={brands} defaultBrandId={brand_id} />
     </div>
   );

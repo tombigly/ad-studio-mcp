@@ -4,6 +4,9 @@ export async function register() {
   // Next calls this in edge + node runtimes. Only start in node.
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
+  // Never start a tunnel on Vercel — serverless can't run a long-lived socket.
+  if (process.env.VERCEL) return;
+
   // Skip when R2 is already configured — no tunnel needed in that mode.
   if (
     process.env.R2_ACCOUNT_ID &&

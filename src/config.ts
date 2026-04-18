@@ -20,8 +20,10 @@ const EnvSchema = z.object({
 export type Env = z.infer<typeof EnvSchema>;
 
 // --- Ad Studio home directory is the one value we always resolve up-front ---
+// On Vercel the only writable path is /tmp, so default there when deployed.
 export const HOME_DIR =
-  process.env.AD_STUDIO_HOME ?? join(homedir(), ".ad-studio");
+  process.env.AD_STUDIO_HOME ??
+  (process.env.VERCEL ? "/tmp/.ad-studio" : join(homedir(), ".ad-studio"));
 mkdirSync(HOME_DIR, { recursive: true });
 
 export const DB_PATH = join(HOME_DIR, "db.sqlite");

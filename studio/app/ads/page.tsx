@@ -7,16 +7,17 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { VideoThumb } from "@/components/video-thumb";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
 const STATUS_TONE: Record<string, string> = {
-  generating: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  draft: "bg-muted text-muted-foreground",
-  approved: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
-  publishing: "bg-violet-500/20 text-violet-700 dark:text-violet-300",
-  published: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400",
-  failed: "bg-destructive/20 text-destructive",
+  generating: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  draft: "bg-muted text-muted-foreground border-border",
+  approved: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  publishing: "bg-violet-500/20 text-violet-300 border-violet-500/30",
+  published: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  failed: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
 export default function AdsPage() {
@@ -28,42 +29,62 @@ export default function AdsPage() {
   } catch {}
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <header className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Ads</h1>
-          <p className="text-muted-foreground mt-1">All generated ads.</p>
-        </div>
-        <Link href="/studio" className={buttonVariants({ size: "default" }) + " gap-2"}>
-          <Sparkles className="size-4" />
-          New ad
-        </Link>
-      </header>
+    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+      <PageHeader
+        title="Ads"
+        subtitle="Every generated creative. Approve, publish, or schedule from here."
+        actions={
+          <Link
+            href="/studio"
+            className={buttonVariants({ size: "default" }) + " gap-2"}
+          >
+            <Sparkles className="size-4" />
+            New ad
+          </Link>
+        }
+      />
 
       {ads.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-14 flex flex-col items-center gap-3 text-center text-muted-foreground">
-            <Video className="size-6" />
-            <div className="max-w-sm">
-              No ads yet. Generate your first in Studio.
+        <Card className="border-dashed border-border/60 bg-gradient-to-br from-muted/30 to-transparent">
+          <CardContent className="py-16 flex flex-col items-center gap-4 text-center">
+            <div className="size-14 rounded-2xl grid place-items-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 border border-border/60">
+              <Video className="size-6 text-violet-300" />
             </div>
+            <div className="max-w-sm space-y-1.5">
+              <div className="font-medium">No ads yet</div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Jump into Studio and write a one-liner. You&apos;ll have a ready-to-publish creative in a minute.
+              </p>
+            </div>
+            <Link
+              href="/studio"
+              className={buttonVariants({ size: "sm" }) + " gap-2 mt-2"}
+            >
+              <Sparkles className="size-3.5" />
+              Open Studio
+            </Link>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {ads.map((ad) => {
-            const videoUrl = mediaUrl({ localPath: ad.video_url, r2Url: ad.r2_video_url });
-            const imageUrl = mediaUrl({ localPath: ad.image_url, r2Url: ad.r2_image_url });
+            const videoUrl = mediaUrl({
+              localPath: ad.video_url,
+              r2Url: ad.r2_video_url,
+            });
+            const imageUrl = mediaUrl({
+              localPath: ad.image_url,
+              r2Url: ad.r2_image_url,
+            });
             return (
               <Link key={ad.id} href={`/ads/${ad.id}`}>
-                <Card className="overflow-hidden hover:border-primary/60 transition-colors h-full">
+                <Card className="overflow-hidden border-border/60 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5 transition-all h-full">
                   <VideoThumb url={videoUrl} imageUrl={imageUrl} />
-
-                  <CardContent className="p-4 space-y-2">
+                  <CardContent className="p-4 space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <span
                         className={cn(
-                          "text-[10px] rounded-full px-2 py-0.5 font-medium uppercase tracking-wide",
+                          "text-[10px] rounded-full border px-2 py-0.5 font-medium uppercase tracking-wider",
                           STATUS_TONE[ad.status] ?? STATUS_TONE.draft
                         )}
                       >
@@ -73,11 +94,11 @@ export default function AdsPage() {
                         {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="text-sm line-clamp-2">{ad.prompt}</div>
+                    <div className="text-sm line-clamp-2 leading-relaxed">{ad.prompt}</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
-                      <span>{brandsMap[ad.brand_id] ?? "—"}</span>
-                      <span>·</span>
-                      <span>{ad.platforms}</span>
+                      <span className="truncate">{brandsMap[ad.brand_id] ?? "—"}</span>
+                      <span className="text-muted-foreground/40">·</span>
+                      <span className="truncate">{ad.platforms}</span>
                     </div>
                   </CardContent>
                 </Card>

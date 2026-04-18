@@ -11,6 +11,7 @@ import { saveEnvAction } from "@/lib/actions/setup";
 import { setWebhookUrl, deleteWebhookUrl } from "@/lib/actions/webhooks";
 import { writeMcpConfigAction } from "@/lib/actions/mcp-config";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/page-header";
 
 const ENV_KEYS = [
   { id: "GEMINI_API_KEY", label: "Gemini API key", hint: "Image + captions" },
@@ -88,11 +89,12 @@ export function SettingsClient({ env, mcp, webhooks }: Props) {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">API keys, webhooks, and MCP configuration.</p>
-      </header>
+    <div className="p-6 md:p-10 max-w-4xl mx-auto space-y-8">
+      <PageHeader
+        title="Settings"
+        subtitle="Rotate API keys, manage platform webhooks, and control where Claude Code sees the MCP server."
+      />
+
 
       <Card className={env.configured ? "" : "border-amber-500/40"}>
         <CardHeader>

@@ -1,5 +1,6 @@
 import { db } from "@/lib/mcp";
 import { CalendarView } from "@/components/calendar-view";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -28,11 +29,11 @@ export default function CalendarPage() {
   } catch {}
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Calendar</h1>
-        <p className="text-muted-foreground mt-1">Scheduled posts across every platform.</p>
-      </header>
+    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+      <PageHeader
+        title="Calendar"
+        subtitle="Every scheduled post across every platform. Click a day to see what&rsquo;s queued."
+      />
       <CalendarView scheduled={scheduled} />
     </div>
   );

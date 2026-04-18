@@ -4,6 +4,7 @@ import { splitPrompt } from "../../../../../dist/gen/split.js";
 import { generateImage } from "../../../../../dist/gen/image.js";
 import { generateVideo } from "../../../../../dist/gen/video.js";
 import { generateCaptions } from "../../../../../dist/gen/captions.js";
+import { preflight } from "../../../../../dist/gen/preflight.js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +42,19 @@ export async function POST(req: Request) {
         if (!brandRow) throw new Error(`brand ${body.brand_id} not found`);
         if (!body.prompt) throw new Error("prompt is required");
         if (!body.platforms?.length) throw new Error("at least one platform required");
+
+        // Preflight: check Gemini (always) and Replicate (if rendering video)
+        // before any retry-spam. Converts credit errors into a single clean
+        // "here's what to fix" message and costs ~2 fast HTTP calls.
+        send("stage", { stage: "preflight", status: "start" });
+        const pf = await preflight({
+          needsGemini: true,
+          needsReplicate: willRenderVideo,
+        });
+        if (pf) {
+          throw new Error(`${pf.provider} unreachable — ${pf.hint}`);
+        }
+        send("stage", { stage: "preflight", status: "done" });
 
         const adId = nanoid(12);
         const brand = JSON.parse(brandRow.brand_json) as {
