@@ -35,26 +35,27 @@ export async function splitPrompt(userPrompt: string): Promise<PromptSplit> {
         config: {
           responseMimeType: "application/json",
           temperature: 0.4,
+          maxOutputTokens: 1024,
         },
       }),
     { label: "splitPrompt" }
   );
 
   const text = response.text ?? "";
-  let parsed: PromptSplit;
+  let parsed: Partial<PromptSplit> = {};
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error(`splitPrompt: Gemini did not return JSON. Got: ${text.slice(0, 200)}`);
+    parsed = {};
   }
-  if (!parsed.scene_prompt) {
-    throw new Error(`splitPrompt: missing scene_prompt. Got: ${JSON.stringify(parsed)}`);
-  }
-  // motion_prompt is only used when rendering video — fall back to a sensible
-  // default so a still-only generation doesn't fail when Gemini correctly
-  // omits motion for a static prompt.
+
+  // Gemini sometimes returns empty fields (safety filter, refusal, or just
+  // a blank response on edge-case prompts). For a demo flow we never want to
+  // hard-fail here — the user already wrote a prompt, fall back to it.
   return {
-    scene_prompt: parsed.scene_prompt,
-    motion_prompt: parsed.motion_prompt || "subtle ambient motion, gentle camera drift",
+    scene_prompt: parsed.scene_prompt?.trim() || userPrompt,
+    motion_prompt:
+      parsed.motion_prompt?.trim() ||
+      "subtle ambient motion, gentle camera drift",
   };
 }
