@@ -46,6 +46,8 @@ export async function generateVideo(
 ): Promise<VideoResult> {
   const imageBuffer = await readFile(imagePath);
 
+  // Replicate's Prefer: wait header maxes at 60 seconds. Kling videos take
+  // 60–180s, so use the max blocking wait then let the SDK poll the rest.
   const output = await replicate().run(KLING_MODEL, {
     input: {
       start_image: imageBuffer,
@@ -53,7 +55,7 @@ export async function generateVideo(
       duration,
       aspect_ratio: aspect,
     },
-    wait: { mode: "block", interval: 3000, timeout: 300 },
+    wait: { mode: "block", interval: 3000, timeout: 60 },
   });
 
   const sourceUrl = await extractUrl(output);
