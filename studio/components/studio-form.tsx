@@ -49,9 +49,11 @@ type StageState = "pending" | "active" | "done" | "skipped" | "error";
 export function StudioForm({
   brands,
   defaultBrandId,
+  tierMode = "paid",
 }: {
   brands: Array<{ id: string; name: string }>;
   defaultBrandId?: string;
+  tierMode?: "paid" | "free";
 }) {
   const router = useRouter();
   // Maintain a local copy of brands so we can append new ones inline without a
@@ -60,9 +62,12 @@ export function StudioForm({
   const [brandId, setBrandId] = useState(defaultBrandId ?? brands[0]?.id ?? "");
   const [prompt, setPrompt] = useState("");
   const [platforms, setPlatforms] = useState<Platform[]>(["instagram", "tiktok"]);
+  const isFreeTier = tierMode === "free";
 
   type CreativeType = "still" | "video" | "both";
   const [creativeType, setCreativeType] = useState<CreativeType>("still");
+  // In free mode, force still and never send anything else to the server.
+  const effectiveCreativeType: CreativeType = isFreeTier ? "still" : creativeType;
   const [running, setRunning] = useState(false);
   const [stages, setStages] = useState<Record<string, StageState>>({});
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +94,7 @@ export function StudioForm({
           brand_id: brandId,
           prompt,
           platforms,
-          creative_type: creativeType,
+          creative_type: effectiveCreativeType,
         }),
       });
       if (!res.body) throw new Error("No response body");
@@ -155,7 +160,7 @@ export function StudioForm({
           </div>
           <div className="max-w-sm space-y-1.5">
             <div className="font-medium">Start with a brand</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               Brands are reusable — they define voice and audiences so every ad sounds like you.
             </p>
           </div>
@@ -187,10 +192,10 @@ export function StudioForm({
                   onClick={() => setBrandId(b.id)}
                   disabled={running}
                   className={cn(
-                    "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    "rounded-full border px-3.5 py-1.5 text-xl transition-colors",
                     b.id === brandId
                       ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                      : "border-border text-foreground hover:text-foreground hover:border-foreground/30"
                   )}
                 >
                   {b.name}
@@ -202,8 +207,8 @@ export function StudioForm({
                     type="button"
                     disabled={running}
                     className={cn(
-                      "rounded-full border border-dashed px-3 py-1.5 text-sm flex items-center gap-1.5 transition-colors",
-                      "text-muted-foreground hover:text-foreground hover:border-primary/60 hover:bg-primary/5"
+                      "rounded-full border border-dashed px-3.5 py-1.5 text-xl flex items-center gap-1.5 transition-colors",
+                      "text-foreground hover:text-foreground hover:border-primary/60 hover:bg-primary/5"
                     )}
                     title="Create a new brand"
                   >
@@ -236,7 +241,7 @@ export function StudioForm({
               placeholder="Cold brew in a glass, morning light through a coffee shop window, steam rising, subtle bokeh, hero shot"
               rows={5}
               disabled={running}
-              className="resize-none text-sm leading-relaxed"
+              className="resize-none text-base leading-relaxed"
             />
           </FormSection>
 
@@ -256,7 +261,7 @@ export function StudioForm({
                       "rounded-full border px-3 py-1.5 text-sm transition-colors flex items-center gap-2",
                       on
                         ? "border-primary bg-primary/10"
-                        : "border-border text-muted-foreground hover:text-foreground"
+                        : "border-border text-foreground hover:text-foreground"
                     )}
                   >
                     <span className={cn("size-3 rounded-sm", tone)} />
@@ -281,14 +286,16 @@ export function StudioForm({
                 .map((row) => (
                   <div
                     key={row.aspect}
-                    className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/40 px-3 py-2"
+                    className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/40 px-3.5 py-2.5"
                   >
-                    <span className="text-xs font-semibold font-mono w-12 text-foreground/80">{row.aspect}</span>
-                    <div className="flex flex-wrap gap-1.5 flex-1">
+                    <span className="text-sm font-semibold font-mono w-14 text-foreground/80">
+                      {row.aspect}
+                    </span>
+                    <div className="flex flex-wrap gap-2 flex-1">
                       {row.platforms.map((p) => (
                         <span
                           key={p.id}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2 py-0.5 text-[11px]"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2.5 py-0.5 text-xs"
                         >
                           <span className={cn("size-2 rounded-sm", p.tone)} />
                           {p.label}
@@ -298,7 +305,7 @@ export function StudioForm({
                   </div>
                 ))}
               {platforms.length === 0 && (
-                <p className="text-xs text-muted-foreground py-1">
+                <p className="text-xs text-foreground py-1">
                   Pick at least one platform above.
                 </p>
               )}
@@ -307,7 +314,11 @@ export function StudioForm({
 
           <FormSection
             title="Creative type"
-            hint="Still for quick iteration, Video when you want motion. Both renders everything and lets you pick per-platform at publish."
+            hint={
+              isFreeTier
+                ? "Free mode: stills only. Flip to Paid in Settings to unlock Kling video."
+                : "Still for quick iteration, Video when you want motion. Both renders everything and lets you pick per-platform at publish."
+            }
           >
             <div className="grid grid-cols-3 gap-2">
               {(
@@ -331,26 +342,42 @@ export function StudioForm({
                     hint: "Still + video. Pick per platform on publish.",
                   },
                 ]
-              ).map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setCreativeType(opt.id)}
-                  disabled={running}
-                  className={cn(
-                    "rounded-md border px-3 py-2 text-left transition-colors",
-                    creativeType === opt.id
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/60"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{opt.label}</span>
-                    <span className="text-[10px] text-muted-foreground">{opt.cost}</span>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground mt-1">{opt.hint}</div>
-                </button>
-              ))}
+              ).map((opt) => {
+                const locked = isFreeTier && opt.id !== "still";
+                const active =
+                  !locked && (isFreeTier ? opt.id === "still" : creativeType === opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => !locked && setCreativeType(opt.id)}
+                    disabled={running || locked}
+                    title={locked ? "Not available in Free mode" : undefined}
+                    className={cn(
+                      "rounded-lg border px-4 py-3 text-left transition-colors",
+                      active
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/60",
+                      locked && "opacity-40 cursor-not-allowed hover:border-border"
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-base font-semibold">
+                        {opt.label}
+                        {locked && (
+                          <span className="text-xs ml-1.5 text-foreground font-normal">
+                            · paid
+                          </span>
+                        )}
+                      </span>
+                      <span className="text-xs text-foreground">{opt.cost}</span>
+                    </div>
+                    <p className="text-sm text-foreground mt-1.5 leading-relaxed">
+                      {opt.hint}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           </FormSection>
 
@@ -358,7 +385,7 @@ export function StudioForm({
             size="lg"
             onClick={generate}
             disabled={!canSubmit}
-            className="gap-2 w-full h-11 text-sm"
+            className="gap-2 w-full h-12 text-base font-medium"
           >
             {running ? (
               <>
@@ -385,10 +412,11 @@ export function StudioForm({
           !running && Object.keys(stages).length === 0 && "opacity-80"
         )}
       >
-        <CardContent className="p-6 space-y-4">
-          <div className="space-y-1">
-            <div className="text-sm font-semibold">Pipeline</div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <CardContent className="p-6 space-y-5">
+          <div className="space-y-1.5">
+            {/* h3 */}
+            <h3 className="text-xl font-semibold tracking-tight">Pipeline</h3>
+            <p className="text-sm text-foreground leading-relaxed">
               Each stage streams live while you wait. Safe to leave this tab open.
             </p>
           </div>
@@ -399,7 +427,7 @@ export function StudioForm({
                 <div
                   key={id}
                   className={cn(
-                    "flex items-center gap-3 rounded-md border border-border p-2.5 text-sm",
+                    "flex items-center gap-3 rounded-lg border border-border p-3 text-xl",
                     state === "active" && "border-primary bg-primary/5",
                     state === "done" && "opacity-80",
                     state === "skipped" && "opacity-40"
@@ -410,20 +438,20 @@ export function StudioForm({
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                     >
-                      <Loader2 className="size-4 text-primary" />
+                      <Loader2 className="size-[18px] text-primary" />
                     </motion.div>
                   ) : state === "done" ? (
-                    <CheckCircle2 className="size-4 text-primary" />
+                    <CheckCircle2 className="size-[18px] text-primary" />
                   ) : state === "error" ? (
-                    <XCircle className="size-4 text-destructive" />
+                    <XCircle className="size-[18px] text-destructive" />
                   ) : (
-                    <Icon className="size-4 text-muted-foreground" />
+                    <Icon className="size-[18px] text-foreground" />
                   )}
-                  <span className={cn((state === "pending" || state === "skipped") && "text-muted-foreground")}>
+                  <span className={cn((state === "pending" || state === "skipped") && "text-foreground")}>
                     {label}
                   </span>
                   {state === "skipped" && (
-                    <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                    <span className="ml-auto text-xs uppercase tracking-wide text-foreground">
                       Skipped
                     </span>
                   )}
@@ -432,12 +460,12 @@ export function StudioForm({
             })}
           </div>
           {error && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive leading-relaxed">
               {error}
             </div>
           )}
           {!running && !error && Object.keys(stages).length === 0 && (
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               Kling adds ~60–90s to video renders. Stills finish in ~15s.
             </p>
           )}
@@ -447,7 +475,8 @@ export function StudioForm({
   );
 }
 
-// Small titled section with a one-sentence helper. Used across the studio form.
+// Titled section with a one-sentence helper. Used across the studio form.
+// Acts as an h4 in the page's heading hierarchy.
 function FormSection({
   title,
   hint,
@@ -458,10 +487,12 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-2.5">
-      <div className="space-y-0.5">
-        <Label className="text-sm font-medium">{title}</Label>
-        {hint && <p className="text-[11px] text-muted-foreground leading-relaxed">{hint}</p>}
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <h4 className="text-lg font-semibold tracking-tight">{title}</h4>
+        {hint && (
+          <p className="text-sm text-foreground leading-relaxed">{hint}</p>
+        )}
       </div>
       {children}
     </div>

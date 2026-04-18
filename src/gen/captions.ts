@@ -1,10 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
-import { env } from "../config.js";
+import { getActiveGeminiKey } from "../tier.js";
 import { withRetry } from "../gemini-retry.js";
 
 let _ai: GoogleGenAI | null = null;
+let _aiKey: string | null = null;
 function ai(): GoogleGenAI {
-  if (!_ai) _ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+  const key = getActiveGeminiKey();
+  if (!_ai || _aiKey !== key) {
+    _ai = new GoogleGenAI({ apiKey: key });
+    _aiKey = key;
+  }
   return _ai;
 }
 

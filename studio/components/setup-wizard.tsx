@@ -114,7 +114,7 @@ export function SetupWizard({
                     ? "bg-primary border-primary text-primary-foreground"
                     : i === stepIndex
                     ? "border-primary text-primary"
-                    : "border-border text-muted-foreground"
+                    : "border-border text-foreground"
                 )}
               >
                 {completed.has(id) ? <Check className="size-3" /> : i + 1}
@@ -194,7 +194,7 @@ function WelcomeStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Let&apos;s get you posting.</CardTitle>
+        <CardTitle className="text-4xl">Let&apos;s get you posting.</CardTitle>
         <CardDescription className="text-base">
           Connect Gemini, Replicate, Cloudflare R2, and Pipedream. Five minutes end to end.
         </CardDescription>
@@ -202,23 +202,23 @@ function WelcomeStep({
       <CardContent className="space-y-4">
         <ul className="space-y-2 text-sm">
           <li className="flex items-center gap-2">
-            <Check className="size-4 text-muted-foreground" />
+            <Check className="size-4 text-foreground" />
             Your keys are saved locally in{" "}
             <code className="text-xs bg-muted px-1.5 py-0.5 rounded">~/.ad-studio/.env</code>
           </li>
           <li className="flex items-center gap-2">
-            <Check className="size-4 text-muted-foreground" />
+            <Check className="size-4 text-foreground" />
             Claude Code config{" "}
             <code className="text-xs bg-muted px-1.5 py-0.5 rounded">~/.claude/mcp.json</code>{" "}
             is written automatically
           </li>
           <li className="flex items-center gap-2">
-            <Check className="size-4 text-muted-foreground" />
+            <Check className="size-4 text-foreground" />
             You bring your own keys — we never proxy your generation
           </li>
         </ul>
         {counted > 0 && (
-          <div className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+          <div className="rounded-md border border-border bg-muted/30 p-3 text-sm text-foreground">
             Detected {counted} existing env value{counted === 1 ? "" : "s"}. You&apos;ll only
             need to fill in what&apos;s missing.
           </div>
@@ -331,7 +331,7 @@ function KeyStep({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl flex items-center gap-2">
+          <CardTitle className="text-4xl flex items-center gap-2">
             {title}{" "}
             <span className="text-xs rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-medium uppercase tracking-wide">
               Saved
@@ -345,7 +345,7 @@ function KeyStep({
           <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm flex items-center gap-2">
             <Check className="size-4 text-primary" />
             <code className="text-xs">{envKey}</code>
-            <span className="text-muted-foreground text-xs ml-auto">•••••• (saved)</span>
+            <span className="text-foreground text-xs ml-auto">•••••• (saved)</span>
           </div>
           <div className="flex justify-between pt-2">
             <Button variant="ghost" onClick={onBack}>
@@ -368,7 +368,7 @@ function KeyStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">{title}</CardTitle>
+        <CardTitle className="text-4xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -503,7 +503,7 @@ function CloudflareStep({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl flex items-center gap-2">
+          <CardTitle className="text-4xl flex items-center gap-2">
             Cloudflare R2{" "}
             <span className="text-xs rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 font-medium uppercase tracking-wide">
               Saved
@@ -539,9 +539,9 @@ function CloudflareStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
+        <CardTitle className="text-4xl flex items-center gap-2">
           Cloudflare R2{" "}
-          <span className="text-xs rounded-full bg-muted text-muted-foreground px-2 py-0.5 font-medium uppercase tracking-wide">
+          <span className="text-xs rounded-full bg-muted text-foreground px-2 py-0.5 font-medium uppercase tracking-wide">
             Optional
           </span>
         </CardTitle>
@@ -553,7 +553,7 @@ function CloudflareStep({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-end">
-          <Button variant="ghost" size="sm" onClick={onNext} className="gap-1 text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={onNext} className="gap-1 text-foreground">
             Skip — use tunnel instead <ArrowRight className="size-3.5" />
           </Button>
         </div>
@@ -627,11 +627,11 @@ function CloudflareStep({
             <div className="text-sm font-medium">
               Last step: paste your S3 access keys
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               Cloudflare generates these in the dashboard only. Click below, click{" "}
               <strong>&ldquo;Create API token&rdquo;</strong>, select permission{" "}
               <strong>&ldquo;Object Read &amp; Write&rdquo;</strong>, restrict to bucket{" "}
-              <code className="text-[11px] bg-background px-1 rounded">{bucketName}</code>,
+              <code className="text-base bg-background px-1 rounded">{bucketName}</code>,
               then paste the two values below.
             </p>
             {tokenDashUrl && (
@@ -817,7 +817,7 @@ function PipedreamStep({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Pipedream webhooks</CardTitle>
+        <CardTitle className="text-4xl">Pipedream webhooks</CardTitle>
         <CardDescription>
           One webhook per platform. Pipedream handles the OAuth to your social accounts —
           we just fire the payload. Add the platforms you care about now; skip the rest.
@@ -907,7 +907,7 @@ function DoneStep({ onFinish }: { onFinish: () => void }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
+        <CardTitle className="text-4xl flex items-center gap-2">
           <Check className="size-6 text-primary" /> You&apos;re set up
         </CardTitle>
         <CardDescription>
@@ -938,7 +938,7 @@ function DoneStep({ onFinish }: { onFinish: () => void }) {
         {state === "done" && mcpPath && (
           <>
             <div className="rounded-md border border-border bg-muted/40 p-3 text-sm space-y-1">
-              <div className="text-muted-foreground text-xs">
+              <div className="text-foreground text-xs">
                 Wrote <code className="bg-background px-1 rounded">{mcpPath}</code>.
                 Restart Claude Code to pick up the new server.
               </div>

@@ -176,7 +176,7 @@ export function AdDetailClient({ adId, status, platforms, captions, posts }: Pro
                     }}
                   />
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-foreground">
                   {p === "x" && "280 characters max."}
                   {p === "instagram" && "2200 characters max. Hashtags at end."}
                   {p === "tiktok" && "2200 characters. Strong hook first."}
@@ -211,7 +211,7 @@ export function AdDetailClient({ adId, status, platforms, captions, posts }: Pro
                   <div className="flex items-center gap-2 text-xs">
                     {post.status === "sent" && <CheckCircle2 className="size-3.5 text-emerald-500" />}
                     {post.status === "failed" && <XCircle className="size-3.5 text-destructive" />}
-                    <span className="text-muted-foreground">{post.status}</span>
+                    <span className="text-foreground">{post.status}</span>
                   </div>
                 </div>
               ))}
@@ -232,7 +232,7 @@ function YouTubeEditor({ value, onChange }: { value: string; onChange: (v: strin
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground">Title (≤100)</Label>
+        <Label className="text-xs text-foreground">Title (≤100)</Label>
         <Input
           value={obj.title ?? ""}
           onChange={(e) =>
@@ -241,7 +241,7 @@ function YouTubeEditor({ value, onChange }: { value: string; onChange: (v: strin
         />
       </div>
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground">Description</Label>
+        <Label className="text-xs text-foreground">Description</Label>
         <Textarea
           rows={6}
           value={obj.description ?? ""}
@@ -309,7 +309,7 @@ function PublishDialog({ adId, platforms }: { adId: string; platforms: Platform[
                       "rounded-full border px-3 py-1 text-sm flex items-center gap-2 transition-colors",
                       on
                         ? "border-primary bg-primary/10"
-                        : "border-border text-muted-foreground hover:text-foreground"
+                        : "border-border text-foreground hover:text-foreground"
                     )}
                   >
                     <span className={cn("size-2.5 rounded-sm", meta.tone)} />
@@ -327,7 +327,7 @@ function PublishDialog({ adId, platforms }: { adId: string; platforms: Platform[
               value={when}
               onChange={(e) => setWhen(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-foreground">
               Leave empty to publish now. Otherwise Pipedream delays until this time.
             </p>
           </div>

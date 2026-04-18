@@ -34,20 +34,20 @@ export default async function BrandDetailPage({
     <div className="p-8 max-w-5xl mx-auto space-y-6">
       <Link
         href="/brands"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" /> Back to brands
       </Link>
 
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{brand.name}</h1>
+          <h1 className="text-5xl font-semibold tracking-tight">{brand.name}</h1>
           {brand.url && (
             <a
               href={brand.url}
               target="_blank"
               rel="noreferrer"
-              className="text-sm text-muted-foreground hover:text-primary"
+              className="text-sm text-foreground hover:text-primary"
             >
               {brand.url}
             </a>
@@ -68,7 +68,7 @@ export default async function BrandDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Voice</CardTitle>
+            <CardTitle className="text-sm font-medium text-foreground">Voice</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{(brandJson.voice as string) || "—"}</p>
@@ -87,7 +87,7 @@ export default async function BrandDetailPage({
         <h2 className="text-lg font-medium mb-3">Ads</h2>
         {ads.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            <CardContent className="py-10 text-center text-sm text-foreground">
               No ads yet for this brand.
             </CardContent>
           </Card>
@@ -105,7 +105,7 @@ export default async function BrandDetailPage({
                     {a.status}
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-foreground mt-1">
                   {a.platforms}
                 </div>
               </Link>
@@ -115,7 +115,7 @@ export default async function BrandDetailPage({
       </div>
 
       <details className="text-sm">
-        <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+        <summary className="cursor-pointer text-foreground hover:text-foreground">
           Raw BrandSystem JSON
         </summary>
         <pre className="mt-2 rounded-md bg-muted/40 p-3 text-xs overflow-auto">
@@ -130,20 +130,20 @@ function ListCard({ title, items }: { title: string; items?: string[] }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {items && items.length > 0 ? (
           <ul className="space-y-1 text-sm">
             {items.map((i) => (
               <li key={i} className="flex gap-2">
-                <span className="text-muted-foreground">•</span>
+                <span className="text-foreground">•</span>
                 <span>{i}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">—</p>
+          <p className="text-sm text-foreground">—</p>
         )}
       </CardContent>
     </Card>

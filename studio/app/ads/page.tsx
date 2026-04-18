@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 const STATUS_TONE: Record<string, string> = {
   generating: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  draft: "bg-muted text-muted-foreground border-border",
+  draft: "bg-muted text-foreground border-border",
   approved: "bg-blue-500/20 text-blue-300 border-blue-500/30",
   publishing: "bg-violet-500/20 text-violet-300 border-violet-500/30",
   published: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
@@ -46,21 +46,22 @@ export default function AdsPage() {
 
       {ads.length === 0 ? (
         <Card className="border-dashed border-border/60 bg-gradient-to-br from-muted/30 to-transparent">
-          <CardContent className="py-16 flex flex-col items-center gap-4 text-center">
-            <div className="size-14 rounded-2xl grid place-items-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 border border-border/60">
-              <Video className="size-6 text-violet-300" />
+          <CardContent className="py-20 flex flex-col items-center gap-5 text-center">
+            <div className="size-16 rounded-2xl grid place-items-center bg-gradient-to-br from-violet-500/20 to-fuchsia-500/10 border border-border/60">
+              <Video className="size-7 text-violet-300" />
             </div>
-            <div className="max-w-sm space-y-1.5">
-              <div className="font-medium">No ads yet</div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            <div className="max-w-md space-y-2">
+              {/* h3 */}
+              <h3 className="text-xl font-medium tracking-tight">No ads yet</h3>
+              <p className="text-base text-foreground leading-relaxed">
                 Jump into Studio and write a one-liner. You&apos;ll have a ready-to-publish creative in a minute.
               </p>
             </div>
             <Link
               href="/studio"
-              className={buttonVariants({ size: "sm" }) + " gap-2 mt-2"}
+              className={buttonVariants({ size: "lg" }) + " gap-2 mt-2"}
             >
-              <Sparkles className="size-3.5" />
+              <Sparkles className="size-4" />
               Open Studio
             </Link>
           </CardContent>
@@ -80,24 +81,27 @@ export default function AdsPage() {
               <Link key={ad.id} href={`/ads/${ad.id}`}>
                 <Card className="overflow-hidden border-border/60 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5 transition-all h-full">
                   <VideoThumb url={videoUrl} imageUrl={imageUrl} />
-                  <CardContent className="p-4 space-y-2.5">
+                  <CardContent className="p-5 space-y-3">
                     <div className="flex items-center justify-between gap-2">
                       <span
                         className={cn(
-                          "text-[10px] rounded-full border px-2 py-0.5 font-medium uppercase tracking-wider",
+                          "text-xs rounded-full border px-2.5 py-0.5 font-semibold uppercase tracking-wider",
                           STATUS_TONE[ad.status] ?? STATUS_TONE.draft
                         )}
                       >
                         {ad.status}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-xs text-foreground">
                         {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true })}
                       </span>
                     </div>
-                    <div className="text-sm line-clamp-2 leading-relaxed">{ad.prompt}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-2">
+                    {/* h4 — ad prompt/title */}
+                    <h4 className="text-base line-clamp-2 leading-relaxed font-medium">
+                      {ad.prompt}
+                    </h4>
+                    <div className="text-sm text-foreground flex items-center gap-2">
                       <span className="truncate">{brandsMap[ad.brand_id] ?? "—"}</span>
-                      <span className="text-muted-foreground/40">·</span>
+                      <span className="text-foreground/40">·</span>
                       <span className="truncate">{ad.platforms}</span>
                     </div>
                   </CardContent>

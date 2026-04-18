@@ -93,7 +93,7 @@ export function CalendarView({ scheduled }: { scheduled: Scheduled[] }) {
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((w) => (
               <div
                 key={w}
-                className="px-3 py-2 text-xs font-medium text-muted-foreground border-r last:border-r-0"
+                className="px-3 py-2 text-xs font-medium text-foreground border-r last:border-r-0"
               >
                 {w}
               </div>
@@ -110,7 +110,7 @@ export function CalendarView({ scheduled }: { scheduled: Scheduled[] }) {
                   onClick={() => setSelected(d)}
                   className={cn(
                     "min-h-[90px] border-r border-b last:border-r-0 p-2 text-left transition-colors",
-                    !inMonth && "bg-muted/20 text-muted-foreground",
+                    !inMonth && "bg-muted/20 text-foreground",
                     isSel && "bg-primary/10",
                     isToday(d) && "ring-1 ring-inset ring-primary/40"
                   )}
@@ -128,7 +128,7 @@ export function CalendarView({ scheduled }: { scheduled: Scheduled[] }) {
                       />
                     ))}
                     {items.length > 4 && (
-                      <span className="text-[10px] text-muted-foreground">+{items.length - 4}</span>
+                      <span className="text-base text-foreground">+{items.length - 4}</span>
                     )}
                   </div>
                 </button>
@@ -143,7 +143,7 @@ export function CalendarView({ scheduled }: { scheduled: Scheduled[] }) {
           <CardContent className="p-5 space-y-3">
             <div className="text-sm font-medium">{format(selected, "EEEE, MMMM d")}</div>
             {selectedItems.length === 0 ? (
-              <div className="text-sm text-muted-foreground">Nothing scheduled.</div>
+              <div className="text-sm text-foreground">Nothing scheduled.</div>
             ) : (
               <div className="space-y-2">
                 {selectedItems.map((it) => (
@@ -159,12 +159,12 @@ export function CalendarView({ scheduled }: { scheduled: Scheduled[] }) {
                           PLATFORM_TONE[it.platform] ?? "bg-muted"
                         )}
                       />
-                      <span className="capitalize w-20 text-muted-foreground">
+                      <span className="capitalize w-20 text-foreground">
                         {it.platform}
                       </span>
                       <span className="truncate">{it.prompt}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    <span className="text-xs text-foreground whitespace-nowrap ml-2">
                       {format(new Date(it.scheduled_at), "h:mm a")}
                     </span>
                   </Link>

@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const STATUS_TONE: Record<string, string> = {
   generating: "bg-amber-500/20 text-amber-700 dark:text-amber-300",
-  draft: "bg-muted text-muted-foreground",
+  draft: "bg-muted text-foreground",
   approved: "bg-blue-500/20 text-blue-700 dark:text-blue-300",
   publishing: "bg-violet-500/20 text-violet-700 dark:text-violet-300",
   published: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400",
@@ -50,7 +50,7 @@ export default async function AdDetailPage({
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <Link
         href="/ads"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" /> Back to ads
       </Link>
@@ -60,25 +60,25 @@ export default async function AdDetailPage({
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                "text-[10px] rounded-full px-2 py-0.5 font-medium uppercase tracking-wide",
+                "text-base rounded-full px-2 py-0.5 font-medium uppercase tracking-wide",
                 STATUS_TONE[ad.status] ?? STATUS_TONE.draft
               )}
             >
               {ad.status}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-foreground">
               {formatDistanceToNow(new Date(ad.created_at), { addSuffix: true })}
             </span>
-            <span className="text-xs text-muted-foreground">·</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-foreground">·</span>
+            <span className="text-xs text-foreground">
               ${(ad.cost_cents / 100).toFixed(2)}
             </span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight line-clamp-2">{ad.prompt}</h1>
+          <h1 className="text-4xl font-semibold tracking-tight line-clamp-2">{ad.prompt}</h1>
           {brand && (
             <Link
               href={`/brands/${brand.id}`}
-              className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+              className="text-sm text-foreground hover:text-primary inline-flex items-center gap-1"
             >
               Brand: {brand.name}
             </Link>
@@ -103,12 +103,12 @@ export default async function AdDetailPage({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={imageUrl} alt="Hero frame" className="w-full h-full object-cover" />
             ) : (
-              <div className="text-xs text-muted-foreground">Not rendered yet</div>
+              <div className="text-xs text-foreground">Not rendered yet</div>
             )}
           </div>
           {imageUrl && (
             <CardContent className="p-3 border-t">
-              <div className="text-xs text-muted-foreground mb-2">Hero frame</div>
+              <div className="text-xs text-foreground mb-2">Hero frame</div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageUrl} alt="Hero" className="w-full rounded-md" />
             </CardContent>

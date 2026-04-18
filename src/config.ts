@@ -8,6 +8,9 @@ import { mkdirSync, readFileSync, existsSync } from "node:fs";
 // Only Gemini + Replicate are strictly required.
 const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, "GEMINI_API_KEY is required"),
+  /** Optional second Gemini key for free-tier mode. When tier mode = "free" and this is set,
+   *  the app uses this key instead of GEMINI_API_KEY. Lets you keep paid + free keys side-by-side. */
+  GEMINI_API_KEY_FREE: z.string().optional(),
   REPLICATE_API_TOKEN: z.string().min(1, "REPLICATE_API_TOKEN is required"),
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),

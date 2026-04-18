@@ -2,6 +2,7 @@
 // pipeline stage so credit-depleted accounts fail fast with a clear message,
 // instead of silently burning tokens on partial runs.
 import { env } from "../config.js";
+import { getActiveGeminiKey, getTierMode } from "../tier.js";
 
 export interface PreflightResult {
   ok: boolean;
@@ -13,8 +14,10 @@ const GEMINI_TEST_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 export async function pingGemini(): Promise<PreflightResult> {
+  const key = getActiveGeminiKey();
+  const mode = getTierMode();
   try {
-    const res = await fetch(`${GEMINI_TEST_URL}?key=${encodeURIComponent(env.GEMINI_API_KEY)}`, {
+    const res = await fetch(`${GEMINI_TEST_URL}?key=${encodeURIComponent(key)}`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -27,7 +30,10 @@ export async function pingGemini(): Promise<PreflightResult> {
     const body = await res.text();
     let hint = `HTTP ${res.status}`;
     if (body.includes("prepayment credits")) {
-      hint = "Gemini project is out of prepayment credits. Top up at ai.studio/projects, or swap GEMINI_API_KEY for a new key on a free-tier project (aistudio.google.com/apikey).";
+      hint =
+        mode === "free"
+          ? "Free-tier Gemini key is out of credits OR your GEMINI_API_KEY_FREE is actually on a paid project. Create a NEW key in a new project at aistudio.google.com/apikey and paste it into Settings → Free-tier key."
+          : "Gemini project is out of prepayment credits. Top up at ai.studio/projects, or switch to Free tier in Settings and add a free-tier key.";
     } else if (res.status === 401 || res.status === 403) {
       hint = "Gemini key is invalid or revoked. Rotate it in Settings.";
     } else if (res.status === 429) {

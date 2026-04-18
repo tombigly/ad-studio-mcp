@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { saveEnvAction } from "@/lib/actions/setup";
 import { setWebhookUrl, deleteWebhookUrl } from "@/lib/actions/webhooks";
 import { writeMcpConfigAction } from "@/lib/actions/mcp-config";
+import { setTierAction, saveFreeTierKeyAction } from "@/lib/actions/tier";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/page-header";
 
@@ -37,13 +38,17 @@ interface Props {
   env: { configured: boolean; has: Record<string, boolean> };
   mcp: { path: string; exists: boolean; hasAdStudio: boolean; otherServers: string[] };
   webhooks: Record<string, string | null>;
+  tier: { mode: "paid" | "free"; hasFreeKey: boolean };
 }
 
-export function SettingsClient({ env, mcp, webhooks }: Props) {
+export function SettingsClient({ env, mcp, webhooks, tier }: Props) {
   const [keyValues, setKeyValues] = useState<Record<string, string>>({});
   const [webhookValues, setWebhookValues] = useState<Record<string, string>>(
     Object.fromEntries(Object.entries(webhooks).map(([k, v]) => [k, v ?? ""]))
   );
+  const [tierMode, setTierMode] = useState<"paid" | "free">(tier.mode);
+  const [hasFreeKey, setHasFreeKey] = useState(tier.hasFreeKey);
+  const [freeKeyInput, setFreeKeyInput] = useState("");
   const [pending, startTransition] = useTransition();
 
   const saveKey = (id: string) => {
@@ -96,6 +101,150 @@ export function SettingsClient({ env, mcp, webhooks }: Props) {
       />
 
 
+      <Card className="border-border/60">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Tier
+            <span
+              className={cn(
+                "text-base rounded-full px-2 py-0.5 font-medium uppercase tracking-wider border",
+                tierMode === "free"
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                  : "bg-violet-500/20 text-violet-300 border-violet-500/30"
+              )}
+            >
+              {tierMode === "free" ? "Free mode" : "Paid mode"}
+            </span>
+          </CardTitle>
+          <CardDescription>
+            Flip to Free to route all Gemini calls through a free-tier key. Video / Kling is
+            auto-disabled in Free mode (since Replicate always costs money). Your paid key stays
+            saved — flipping back is one click.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => {
+                startTransition(async () => {
+                  try {
+                    await setTierAction("paid");
+                    setTierMode("paid");
+                    toast.success("Switched to Paid mode");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Switch failed");
+                  }
+                });
+              }}
+              className={cn(
+                "rounded-md border p-3 text-left transition-colors",
+                tierMode === "paid"
+                  ? "border-violet-500/60 bg-violet-500/10"
+                  : "border-border hover:border-primary/60"
+              )}
+            >
+              <div className="font-medium text-sm">Paid</div>
+              <div className="text-base text-foreground mt-1 leading-relaxed">
+                Uses your main GEMINI_API_KEY. Unlocks Kling video on Replicate.
+              </div>
+            </button>
+            <button
+              type="button"
+              disabled={pending || !hasFreeKey}
+              onClick={() => {
+                startTransition(async () => {
+                  try {
+                    await setTierAction("free");
+                    setTierMode("free");
+                    toast.success("Switched to Free mode");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Switch failed");
+                  }
+                });
+              }}
+              title={!hasFreeKey ? "Add a free-tier key below first" : undefined}
+              className={cn(
+                "rounded-md border p-3 text-left transition-colors",
+                tierMode === "free"
+                  ? "border-emerald-500/60 bg-emerald-500/10"
+                  : "border-border hover:border-primary/60",
+                !hasFreeKey && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <div className="font-medium text-sm flex items-center gap-2">
+                Free
+                {!hasFreeKey && (
+                  <span className="text-base text-foreground font-normal">
+                    (add key →)
+                  </span>
+                )}
+              </div>
+              <div className="text-base text-foreground mt-1 leading-relaxed">
+                Uses a free-tier Gemini key. Stills only — 15 req/min free quota.
+              </div>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="env-GEMINI_FREE">
+              Free-tier Gemini key{" "}
+              <span className="text-xs text-foreground font-normal">
+                · separate from your main key
+              </span>
+            </Label>
+            <div className="flex gap-2 items-start">
+              <Input
+                id="env-GEMINI_FREE"
+                type="password"
+                value={freeKeyInput}
+                onChange={(e) => setFreeKeyInput(e.target.value)}
+                placeholder={
+                  hasFreeKey ? "•••••• (saved) — paste to replace" : "AIzaSy... from a new, unbilled project"
+                }
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <Button
+                variant="outline"
+                size="default"
+                onClick={() => {
+                  if (!freeKeyInput) return;
+                  startTransition(async () => {
+                    try {
+                      await saveFreeTierKeyAction(freeKeyInput);
+                      setHasFreeKey(true);
+                      setFreeKeyInput("");
+                      toast.success("Free-tier key saved");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Save failed");
+                    }
+                  });
+                }}
+                disabled={!freeKeyInput || pending}
+                className="gap-2"
+              >
+                {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+                Save
+              </Button>
+            </div>
+            <p className="text-base text-foreground leading-relaxed">
+              Get one at{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary hover:underline"
+              >
+                aistudio.google.com/apikey
+              </a>{" "}
+              — pick &ldquo;Create API key in new project&rdquo; so it lands on the unbilled free tier.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className={env.configured ? "" : "border-amber-500/40"}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -143,11 +292,11 @@ export function SettingsClient({ env, mcp, webhooks }: Props) {
                 <div className="flex items-center justify-between">
                   <Label htmlFor={`env-${id}`}>
                     {label}{" "}
-                    <span className="text-xs text-muted-foreground font-normal">· {hint}</span>
+                    <span className="text-xs text-foreground font-normal">· {hint}</span>
                   </Label>
                   <span
                     className={cn(
-                      "text-[10px] rounded-full px-2 py-0.5 uppercase tracking-wide",
+                      "text-base rounded-full px-2 py-0.5 uppercase tracking-wide",
                       env.has[id]
                         ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                         : "bg-amber-500/20 text-amber-700 dark:text-amber-400"
@@ -193,7 +342,7 @@ export function SettingsClient({ env, mcp, webhooks }: Props) {
             <div key={p} className="flex items-center gap-2">
               <span className={cn("size-7 rounded-md shrink-0", PLATFORM_TONE[p])} />
               <div className="flex-1 min-w-0">
-                <Label className="text-xs capitalize text-muted-foreground">{p}</Label>
+                <Label className="text-xs capitalize text-foreground">{p}</Label>
                 <Input
                   value={webhookValues[p] ?? ""}
                   onChange={(e) =>
@@ -231,7 +380,7 @@ export function SettingsClient({ env, mcp, webhooks }: Props) {
         </CardHeader>
         <CardContent className="space-y-3">
           {mcp.otherServers.length > 0 && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-foreground">
               Other servers preserved:{" "}
               {mcp.otherServers.map((s) => (
                 <code key={s} className="text-xs bg-muted px-1.5 py-0.5 rounded mr-1">

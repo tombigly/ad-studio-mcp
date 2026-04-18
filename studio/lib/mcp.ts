@@ -13,6 +13,13 @@ export {
   reloadEnv,
   getR2PublicUrlBase,
 } from "../../dist/config.js";
+export {
+  getTierMode,
+  setTierMode,
+  getActiveGeminiKey,
+  isPaidTier,
+} from "../../dist/tier.js";
+export type { TierMode } from "../../dist/tier.js";
 export type { BrandSystem } from "../../dist/brands.js";
 export type { PlatformCaptions } from "../../dist/gen/captions.js";
 export type {

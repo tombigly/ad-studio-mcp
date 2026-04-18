@@ -15,6 +15,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { getTierStatusAction } from "@/lib/actions/tier";
 
 const nav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -29,15 +30,26 @@ export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [tierMode, setTierModeLocal] = useState<"paid" | "free">("paid");
+  useEffect(() => {
+    setMounted(true);
+    getTierStatusAction()
+      .then((r) => setTierModeLocal(r.mode))
+      .catch(() => {});
+  }, [pathname]);
 
   return (
-    <aside className="w-60 shrink-0 border-r border-border bg-sidebar flex flex-col">
-      <div className="px-5 py-5 flex items-center gap-2">
-        <div className="size-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500" />
-        <div className="font-semibold tracking-tight">Ad Studio</div>
+    <aside className="w-64 shrink-0 border-r border-border bg-sidebar flex flex-col">
+      <div className="px-5 py-6 flex items-center gap-3">
+        <div className="size-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500" />
+        <div className="text-base font-semibold tracking-tight">Ad Studio</div>
+        {mounted && tierMode === "free" && (
+          <span className="ml-auto text-base rounded-full border border-emerald-500/30 bg-emerald-500/20 text-emerald-300 px-2 py-0.5 font-semibold uppercase tracking-wider">
+            Free
+          </span>
+        )}
       </div>
-      <nav className="flex-1 px-2 space-y-0.5">
+      <nav className="flex-1 px-3 space-y-1">
         {nav.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/"
@@ -48,13 +60,13 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-xl transition-colors",
                 active
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
               )}
             >
-              <Icon className="size-4" />
+              <Icon className="size-[18px]" />
               {label}
             </Link>
           );
@@ -64,7 +76,7 @@ export function Sidebar() {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-3"
+          className="w-full justify-start gap-3 text-sm"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
           {mounted && theme === "dark" ? (

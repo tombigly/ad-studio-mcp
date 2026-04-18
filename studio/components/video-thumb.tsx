@@ -40,7 +40,7 @@ export function VideoThumb({
   }
   return (
     <div className="aspect-[9/16] bg-muted/40 grid place-items-center overflow-hidden">
-      <Video className="size-8 text-muted-foreground" />
+      <Video className="size-8 text-foreground" />
       <span className="sr-only">
         <ImageIcon />
       </span>
