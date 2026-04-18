@@ -67,6 +67,18 @@ function makePgDb(): DB {
     max: 1, // serverless — single connection per invocation
     idle_timeout: 20,
     connect_timeout: 10,
+    types: {
+      // BIGINT (int8) defaults to BigInt in postgres-js. We only use BIGINT
+      // for ms-precision timestamps + cost cents, both well under
+      // Number.MAX_SAFE_INTEGER, so coerce back to Number for compatibility
+      // with `new Date(...)`, formatDistanceToNow, etc.
+      bigint: {
+        to: 20,
+        from: [20],
+        serialize: (v: number | bigint | string) => String(v),
+        parse: (v: string) => Number(v),
+      },
+    },
   });
 
   // Translate `?` placeholders → `$1, $2, …`
